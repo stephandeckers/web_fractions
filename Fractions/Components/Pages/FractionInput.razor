@@ -1,0 +1,182 @@
+@page "/fraction-input"
+@rendermode InteractiveServer
+
+<PageTitle>Fraction Input</PageTitle>
+
+<h1>Variable Fraction Input</h1>
+
+<div class="fraction-container">
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Enter a Fraction</h5>
+            
+            <div class="fraction-input-group">
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Numerator</span>
+                    <input type="number" 
+                           class="form-control @(IsNumeratorValid ? "" : "is-invalid")" 
+                           @bind="Numerator" 
+                           @bind:event="oninput"
+                           placeholder="Enter numerator"
+                           min="0" />
+                </div>
+                
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Denominator</span>
+                    <input type="number" 
+                           class="form-control @(IsDenominatorValid ? "" : "is-invalid")" 
+                           @bind="Denominator" 
+                           @bind:event="oninput"
+                           placeholder="Enter denominator"
+                           min="1" />
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @ErrorMessage
+                </div>
+            }
+
+            @if (IsValidFraction)
+            {
+                <div class="alert alert-success" role="alert">
+                    <h6>Fraction Details:</h6>
+                    <p><strong>Original:</strong> @Numerator/@Denominator</p>
+                    
+                    @if (SimplifiedNumerator != Numerator || SimplifiedDenominator != Denominator)
+                    {
+                        <p><strong>Simplified:</strong> @SimplifiedNumerator/@SimplifiedDenominator</p>
+                    }
+                    else
+                    {
+                        <p><em>This fraction is already in its simplest form.</em></p>
+                    }
+                    
+                    <p><strong>Decimal:</strong> @DecimalValue.ToString("F6")</p>
+                    <p><strong>Percentage:</strong> @((DecimalValue * 100).ToString("F2"))%</p>
+                </div>
+            }
+
+            <div class="mt-3">
+                <button class="btn btn-primary" @onclick="ClearInputs">Clear</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">About Variable Fractions</h5>
+            <p>
+                This prototype allows you to enter any fraction without being limited to a predefined dropdown list.
+                Simply enter the numerator (top number) and denominator (bottom number) of your fraction.
+            </p>
+            <p>
+                <strong>Features:</strong>
+            </p>
+            <ul>
+                <li>Enter any fraction from 0/1 to any valid combination</li>
+                <li>Automatic validation (denominator cannot be zero)</li>
+                <li>Automatic simplification to lowest terms</li>
+                <li>Display decimal and percentage equivalents</li>
+                <li>Real-time feedback as you type</li>
+            </ul>
+            <p>
+                <strong>Examples:</strong>
+            </p>
+            <ul>
+                <li>1/30 → 1/30 (0.033333)</li>
+                <li>15/30 → 1/2 (0.500000)</li>
+                <li>20/30 → 2/3 (0.666667)</li>
+                <li>29/30 → 29/30 (0.966667)</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fraction-container {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .fraction-input-group {
+        margin-bottom: 1rem;
+    }
+
+    .card {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+</style>
+
+@code {
+    private int? Numerator { get; set; }
+    private int? Denominator { get; set; }
+    
+    private int SimplifiedNumerator { get; set; }
+    private int SimplifiedDenominator { get; set; }
+    private double DecimalValue { get; set; }
+    
+    private string ErrorMessage { get; set; } = string.Empty;
+    
+    private bool IsNumeratorValid => Numerator.HasValue && Numerator.Value >= 0;
+    private bool IsDenominatorValid => Denominator.HasValue && Denominator.Value > 0;
+    
+    private bool IsValidFraction
+    {
+        get
+        {
+            if (!Numerator.HasValue || !Denominator.HasValue)
+                return false;
+            
+            if (Denominator.Value == 0)
+            {
+                ErrorMessage = "Denominator cannot be zero.";
+                return false;
+            }
+            
+            if (Numerator.Value < 0)
+            {
+                ErrorMessage = "Numerator must be non-negative.";
+                return false;
+            }
+            
+            ErrorMessage = string.Empty;
+            CalculateFraction();
+            return true;
+        }
+    }
+    
+    private void CalculateFraction()
+    {
+        if (!Numerator.HasValue || !Denominator.HasValue || Denominator.Value == 0)
+            return;
+        
+        // Calculate decimal value
+        DecimalValue = (double)Numerator.Value / Denominator.Value;
+        
+        // Simplify fraction
+        int gcd = CalculateGCD(Numerator.Value, Denominator.Value);
+        SimplifiedNumerator = Numerator.Value / gcd;
+        SimplifiedDenominator = Denominator.Value / gcd;
+    }
+    
+    private int CalculateGCD(int a, int b)
+    {
+        while (b != 0)
+        {
+            int temp = b;
+            b = a % b;
+            a = temp;
+        }
+        return a;
+    }
+    
+    private void ClearInputs()
+    {
+        Numerator = null;
+        Denominator = null;
+        ErrorMessage = string.Empty;
+    }
+}
