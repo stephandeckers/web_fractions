@@ -130,13 +130,13 @@
             if (!Numerator.HasValue || !Denominator.HasValue)
                 return false;
             
-            if (Denominator.Value == 0)
+            if (!IsDenominatorValid)
             {
                 ErrorMessage = "Denominator cannot be zero.";
                 return false;
             }
             
-            if (Numerator.Value < 0)
+            if (!IsNumeratorValid)
             {
                 ErrorMessage = "Numerator must be non-negative.";
                 return false;
@@ -164,6 +164,10 @@
     
     private int CalculateGCD(int a, int b)
     {
+        // Handle special case: GCD(0, n) = n
+        if (a == 0)
+            return b;
+        
         while (b != 0)
         {
             int temp = b;
