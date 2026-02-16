@@ -154,38 +154,14 @@
                 return false;
             }
             
-            // Parse the fraction
+            // Parse the fraction - regex already validated format
             var match = FractionPattern.Match(FractionInput);
-            if (!match.Success)
-            {
-                ErrorMessage = "Invalid format. Please enter fraction as: numerator/denominator (e.g., 3/4)";
-                return false;
-            }
-            
-            if (!int.TryParse(match.Groups[1].Value, out int numerator))
-            {
-                ErrorMessage = "Invalid numerator value.";
-                return false;
-            }
-            
-            if (!int.TryParse(match.Groups[2].Value, out int denominator))
-            {
-                ErrorMessage = "Invalid denominator value.";
-                return false;
-            }
-            
-            Numerator = numerator;
-            Denominator = denominator;
+            Numerator = int.Parse(match.Groups[1].Value);
+            Denominator = int.Parse(match.Groups[2].Value);
             
             if (Denominator == 0)
             {
                 ErrorMessage = "Denominator cannot be zero.";
-                return false;
-            }
-            
-            if (Numerator < 0)
-            {
-                ErrorMessage = "Numerator must be non-negative.";
                 return false;
             }
             
